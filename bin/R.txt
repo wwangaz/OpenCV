@@ -6,8 +6,7 @@ int id back 0x7f040001
 int id front 0x7f040002
 int id image_manipulations_activity_surface_view 0x7f040003
 int id sb 0x7f040005
-int id sb1 0x7f040006
-int id sb2 0x7f040007
+int id sb2 0x7f040006
 int id tv 0x7f040004
 int layout image_manipulations_surface_view 0x7f030000
 int string app_name 0x7f050000

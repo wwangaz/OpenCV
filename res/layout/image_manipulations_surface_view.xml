@@ -38,14 +38,6 @@
 	    android:progress="50" />
 	
 	<SeekBar
-	    android:id="@+id/sb1"
-	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content"
-	    android:layout_gravity="bottom"
-	    android:max="255"
-	    android:progress="50" />
-	
-	<SeekBar
 	    android:id="@+id/sb2"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"

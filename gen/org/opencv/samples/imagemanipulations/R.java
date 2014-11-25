@@ -45,8 +45,7 @@ containing a value of this type.
         public static final int front=0x7f040002;
         public static final int image_manipulations_activity_surface_view=0x7f040003;
         public static final int sb=0x7f040005;
-        public static final int sb1=0x7f040006;
-        public static final int sb2=0x7f040007;
+        public static final int sb2=0x7f040006;
         public static final int tv=0x7f040004;
     }
     public static final class layout {

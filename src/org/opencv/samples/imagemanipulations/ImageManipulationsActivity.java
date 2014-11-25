@@ -42,6 +42,8 @@ public class ImageManipulationsActivity extends Activity implements CvCameraView
 
     private Mat                  mIntermediateMat;
     private Mat					 mIntermediateMat1;
+    private Mat					 mHSV;
+    private Mat					 mask;
     private int                  mHistSizeNum = 25;
 
 
@@ -53,7 +55,6 @@ public class ImageManipulationsActivity extends Activity implements CvCameraView
     private TextView tv;
     
     private int threshold;
-    private int threshold1;
     private int threshold2;
     
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
@@ -88,14 +89,12 @@ public class ImageManipulationsActivity extends Activity implements CvCameraView
         setContentView(R.layout.image_manipulations_surface_view);
         
         sb = (SeekBar) findViewById(R.id.sb);
-        sb1 = (SeekBar) findViewById(R.id.sb1);
         sb2 = (SeekBar) findViewById(R.id.sb2);
         tv = (TextView) findViewById(R.id.tv);
         tv.setText("current value is"+sb.getProgress());
         
         
         sb.setOnSeekBarChangeListener(this);
-        sb1.setOnSeekBarChangeListener(this);
         sb2.setOnSeekBarChangeListener(this);
         
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.image_manipulations_activity_surface_view);
@@ -104,9 +103,8 @@ public class ImageManipulationsActivity extends Activity implements CvCameraView
     
     
     public void onProgressChanged(SeekBar seekbar, int progress, boolean fromUser) {
-    	tv.setText(" 1 is"+sb.getProgress()+" 2 is"+sb1.getProgress()+" 3 is"+sb2.getProgress());
+    	tv.setText(" 1 is"+sb.getProgress()+" 3 is"+sb2.getProgress());
     	threshold = sb.getProgress();
-    	threshold1 = sb1.getProgress();
     	threshold2 = sb2.getProgress();
     }
 
@@ -142,6 +140,8 @@ public class ImageManipulationsActivity extends Activity implements CvCameraView
     public void onCameraViewStarted(int width, int height) {
         mIntermediateMat = new Mat();
         mIntermediateMat1 = new Mat();
+        mHSV = new Mat();
+        mask = new Mat();
         mSize0 = new Size();
     }
 
@@ -159,8 +159,8 @@ public class ImageManipulationsActivity extends Activity implements CvCameraView
 
         int rows = (int) sizeRgba.height;
         int cols = (int) sizeRgba.width;
-
-        switch (ImageManipulationsActivity.viewMode) {
+        
+		switch (ImageManipulationsActivity.viewMode) {
         case ImageManipulationsActivity.VIEW_MODE_RGBA:
             break;
             
@@ -169,28 +169,36 @@ public class ImageManipulationsActivity extends Activity implements CvCameraView
             
             Mat mZoomWindow = rgba.submat(0, rows, cols / 2, cols);
             Imgproc.resize(mZoomWindow, zoomCorner, zoomCorner.size());
-            //Imgproc.Canny(mZoomWindow, mIntermediateMat, (double) threshold, 90);
-            //Imgproc.cvtColor(mIntermediateMat, mZoomWindow, Imgproc.COLOR_GRAY2BGRA, 4);
-            //Imgproc.threshold(mZoomWindow, mZoomWindow, (double) threshold, 255, Imgproc.THRESH_BINARY);
-            //Imgproc.cvtColor(mIntermediateMat, mZoomWindow, Imgproc.COLOR_GRAY2RGBA, 4);
             Imgproc.cvtColor(mZoomWindow, mIntermediateMat1, Imgproc.COLOR_RGBA2BGR, 3);
-            Imgproc.cvtColor(mIntermediateMat1, mIntermediateMat1, Imgproc.COLOR_BGR2GRAY, 2);
+            Imgproc.cvtColor(mIntermediateMat1, mHSV, Imgproc.COLOR_BGR2HSV, 3);
             //Imgproc.cvtColor(mIntermediateMat1, mIntermediateMat1, Imgproc.COLOR_BGR2RGBA, 4);
             
-            //Core.extractChannel(mIntermediateMat1, mIntermediateMat1, 1);
+            Core.extractChannel(mHSV, mIntermediateMat1, 1);
             
-            //Imgproc.cvtColor(mIntermediateMat1, mZoomWindow, Imgproc.COLOR_GRAY2BGRA, 4);
             
-            //Core.extractChannel(mZoomWindow, mIntermediateMat, 1);
-            Imgproc.threshold(mIntermediateMat1, mIntermediateMat1, (double) threshold, 255, Imgproc.THRESH_TOZERO_INV);
-            //Imgproc.threshold(mIntermediateMat1, mIntermediateMat1, (double) threshold1, 255, Imgproc.THRESH_TOZERO);
-            Imgproc.threshold(mIntermediateMat1, mIntermediateMat1, (double) threshold2, 255, Imgproc.THRESH_BINARY);
+            Imgproc.threshold(mIntermediateMat1, mIntermediateMat1, (double) 255, 255, Imgproc.THRESH_TOZERO_INV);
+            Imgproc.threshold(mIntermediateMat1, mask, (double) 208, 255, Imgproc.THRESH_BINARY);
             
             //there need to do resize, linear
             
-            Imgproc.cvtColor(mIntermediateMat1, mZoomWindow, Imgproc.COLOR_GRAY2BGRA, 4);
+            Imgproc.cvtColor(mask, mZoomWindow, Imgproc.COLOR_GRAY2BGRA, 4);
+            
+            
             Imgproc.resize(mZoomWindow, mIntermediateMat, mSize0, 0.1, 0.1, Imgproc.INTER_NEAREST);
             Imgproc.resize(mIntermediateMat, mZoomWindow, mZoomWindow.size(), 0., 0., Imgproc.INTER_NEAREST);
+            
+            Size msize = mIntermediateMat.size();
+            int mheight = (int) msize.height;
+            int mwidth = (int) msize.width;
+            
+            mIntermediateMat = mZoomWindow.submat(0, mheight/2, 0, mwidth/2);
+            
+//            Mat temp = new Mat();
+//            mIntermediateMat.copyTo(temp);
+            
+            if(Core.countNonZero(mIntermediateMat) > mheight*mwidth/4){
+            	
+            }
             
             Size wsize = mZoomWindow.size();
             Core.rectangle(mZoomWindow, new Point(1, 1), new Point(wsize.width - 2, wsize.height - 2), new Scalar(255, 0, 0, 255), 2);
